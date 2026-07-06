@@ -1,0 +1,53 @@
+name: BTC 两小时更新 (11:00-23:00 CST)
+
+on:
+  schedule:
+    # 11:00 13:00 15:00 17:00 19:00 21:00 23:00 CST
+    # = 03:00 05:00 07:00 09:00 11:00 13:00 15:00 UTC
+    - cron: '0 3,5,7,9,11,13,15 * * *'
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: 'Report type'
+        required: true
+        default: 'interval'
+        type: choice
+        options:
+          - interval
+
+env:
+  CODEX_BIN: codex
+  MODEL: o3-mini
+
+jobs:
+  interval-update:
+    name: Generate & Send Interval Update
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+
+      - name: Run BTC analysis (interval update)
+        run: |
+          bash scripts/run-btc-analysis.sh interval
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-interval-update
+          path: reports/*.md
+          retention-days: 3

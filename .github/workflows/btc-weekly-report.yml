@@ -1,0 +1,55 @@
+name: BTC 每周总结 (周日 22:00 CST)
+
+on:
+  schedule:
+    # 每周日 22:00 CST = 14:00 UTC
+    - cron: '0 14 * * 0'
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: 'Report type'
+        required: true
+        default: 'weekly'
+        type: choice
+        options:
+          - weekly
+
+env:
+  CODEX_BIN: codex
+  MODEL: o3-mini
+
+jobs:
+  weekly-report:
+    name: Generate & Send Weekly Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+
+      - name: Verify Codex installation
+        run: codex --version
+
+      - name: Run BTC analysis (weekly report)
+        run: |
+          bash scripts/run-btc-analysis.sh weekly
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-weekly-report
+          path: reports/*.md
+          retention-days: 30

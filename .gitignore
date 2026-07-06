@@ -1,0 +1,22 @@
+# Environment
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Reports (generated at runtime)
+reports/*.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
